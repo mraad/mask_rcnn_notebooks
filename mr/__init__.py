@@ -49,9 +49,14 @@ class MRDataset(utils.Dataset):
 
         for image_id, tif_path in enumerate(tif_glob):
             _, tif_name = os.path.split(tif_path)
+            base, name = os.path.split(tif_path)
+            base, _ = os.path.split(base)
+            mask = os.path.join(base, "labels", "Tank", name)
+
             self.add_image("mr",
                            image_id=image_id,
                            path=tif_path,
+                           mask=mask,
                            width=IMG_SIZE,
                            height=IMG_SIZE,
                            filename=tif_name)
@@ -71,29 +76,43 @@ class MRDataset(utils.Dataset):
     def imread(self, image_path):
         return skimage.io.imread(image_path)
 
+    # def load_mask(self, image_id):
+    #     info = self.image_info[image_id]
+    #     tif_path = info["path"]
+    #     masks = []
+    #     clazz = []
+    #     for class_info in self.class_info:
+    #         class_nm = class_info["name"]
+    #         class_id = class_info["id"]
+    #         base, name = os.path.split(tif_path)
+    #         base, _ = os.path.split(base)
+    #         name = os.path.join(base, "labels", class_nm, name)
+    #         if os.path.exists(name):
+    #             mask = self.imread(name)
+    #             instance_ids = np.unique(mask)
+    #             for i in instance_ids:
+    #                 if i > 0:
+    #                     m = np.zeros(mask.shape)
+    #                     m[mask == i] = i
+    #                     if np.any(m == i):
+    #                         masks.append(m)
+    #                         clazz.append(class_id)
+    #     if masks:
+    #         masks = np.stack(masks, axis=-1)
+    #     else:
+    #         masks = np.array(masks)
+    #     return masks.astype(np.bool), np.array(clazz, dtype=np.int32)
+
     def load_mask(self, image_id):
         info = self.image_info[image_id]
-        tif_path = info["path"]
-        masks = []
-        clazz = []
-        for class_info in self.class_info:
-            class_nm = class_info["name"]
-            class_id = class_info["id"]
-            base, name = os.path.split(tif_path)
-            base, _ = os.path.split(base)
-            name = os.path.join(base, "labels", class_nm, name)
-            if os.path.exists(name):
-                mask = self.imread(name)
-                instance_ids = np.unique(mask)
-                for i in instance_ids:
-                    if i > 0:
-                        m = np.zeros(mask.shape)
-                        m[mask == i] = i
-                        if np.any(m == i):
-                            masks.append(m)
-                            clazz.append(class_id)
-        if masks:
-            masks = np.stack(masks, axis=-1)
-        else:
-            masks = np.array(masks)
-        return masks.astype(np.bool), np.array(clazz, dtype=np.int32)
+        mask = info["mask"]
+        image = self.imread(mask)
+        label = np.unique(image)
+        count = label.size - 1
+        masks = np.zeros([IMG_SIZE, IMG_SIZE, count], dtype=np.bool)
+        clazz = np.ones(count, np.int32)
+        for i in range(1, label.size):
+            idx = image == i
+            idx = idx.reshape(image.shape)
+            masks[:, :, i - 1] = idx
+        return masks, clazz
