@@ -1,10 +1,10 @@
-import glob
 import os
-import sys
-from functools import lru_cache
 
+import glob
 import numpy as np
 import skimage
+import sys
+from functools import lru_cache
 
 MRCNN_DIR = os.getenv("MRCNN_HOME", "Mask_RCNN")
 sys.path.append(MRCNN_DIR)
@@ -61,7 +61,11 @@ class MRDataset(utils.Dataset):
         self.load_glob(tif_glob)
 
     def image_reference(self, image_id):
-        return self.image_info[image_id]["path"]
+        info = self.image_info[image_id]
+        if info["source"] == "mr":
+            return info["path"]
+        else:
+            super(self.__class__).image_reference(self, image_id)
 
     @lru_cache(maxsize=None)
     def imread(self, image_path):
@@ -71,7 +75,7 @@ class MRDataset(utils.Dataset):
         info = self.image_info[image_id]
         tif_path = info["path"]
         masks = []
-        class_ids = []
+        clazz = []
         for class_info in self.class_info:
             class_nm = class_info["name"]
             class_id = class_info["id"]
@@ -87,9 +91,9 @@ class MRDataset(utils.Dataset):
                         m[mask == i] = i
                         if np.any(m == i):
                             masks.append(m)
-                            class_ids.append(class_id)
+                            clazz.append(class_id)
         if masks:
             masks = np.stack(masks, axis=-1)
         else:
             masks = np.array(masks)
-        return masks.astype(np.bool), np.array(class_ids, dtype=np.int32)
+        return masks.astype(np.bool), np.array(clazz, dtype=np.int32)
