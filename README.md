@@ -10,3 +10,12 @@ cd ${MRCNN_HOME}
 pip install -r requirements.txt
 pip install pycocotools
 ```
+
+```bash
+docker run --runtime=nvidia --rm nvidia/cuda:9.2-runtime-ubuntu16.04 nvidia-smi
+```
+
+```bash
+docker run --runtime=nvidia -it --rm tensorflow/tensorflow:1.12.0-devel-gpu-py3 \
+   python -c "import tensorflow as tf; tf.enable_eager_execution(); print(tf.reduce_sum(tf.random_normal([1000, 1000])))"
+```
