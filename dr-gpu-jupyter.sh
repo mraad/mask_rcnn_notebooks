@@ -12,4 +12,4 @@ docker run --rm -it\
  -v ${PWD}:/notebooks\
  -w /notebooks\
  mask_rcnn/mask_rcnn\
- jupyter lab --ip=0.0.0.0 --NotebookApp.token='' --allow-root --no-browser
+ jupyter notebook --ip=0.0.0.0 --NotebookApp.token='' --allow-root --no-browser
