@@ -10,7 +10,7 @@ RUN pip install --upgrade pip
 
 RUN git clone --depth 1 https://github.com/matterport/Mask_RCNN.git /Mask_RCNN
 RUN cd /Mask_RCNN &&\
- sed -i 's/tensorflow>=1.3.0/tensorflow=gpu==1.12.0/g' requirements.txt &&\
+ sed -i 's/tensorflow>=1.3.0/tensorflow=gpu==1.12.2/g' requirements.txt &&\
  pip install -r requirements.txt &&\
  pip install pycocotools
 
