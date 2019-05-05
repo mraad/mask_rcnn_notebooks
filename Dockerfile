@@ -14,10 +14,6 @@ RUN cd /Mask_RCNN &&\
  pip install -r requirements.txt &&\
  pip install pycocotools
 
-ENV MRCNN_HOME=/Mask_RCNN
-#COPY tf_keras_gpu_version.ipynb /Mask_RCNN
-#COPY train2.ipynb /Mask_RCNN
-
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 8888
