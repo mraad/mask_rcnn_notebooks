@@ -68,7 +68,7 @@ class MRDataset(utils.Dataset):
     def image_reference(self, image_id):
         info = self.image_info[image_id]
         if info["source"] == "mr":
-            return info["mr"]
+            return info["path"]
         else:
             super(self.__class__).image_reference(self, image_id)
 
