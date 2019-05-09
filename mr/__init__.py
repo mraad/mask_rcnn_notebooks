@@ -1,10 +1,10 @@
-import os
-
 import glob
-import numpy as np
-import skimage
+import os
 import sys
 from functools import lru_cache
+
+import numpy as np
+import skimage
 
 MRCNN_DIR = os.getenv("MRCNN_HOME", "Mask_RCNN")
 sys.path.append(MRCNN_DIR)
@@ -76,7 +76,10 @@ class MRDataset(utils.Dataset):
 
     @lru_cache(maxsize=None)
     def imread(self, image_path):
-        return skimage.io.imread(image_path)
+        if os.path.exists(image_path):
+            return skimage.io.imread(image_path)
+        else:
+            return np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.int8)
 
     # def load_mask(self, image_id):
     #     info = self.image_info[image_id]
