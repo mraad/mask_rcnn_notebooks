@@ -6,6 +6,9 @@ conda create --yes --quiet --name mask_rcnn --clone arcgispro-py3
 conda activate mask_rcnn
 conda install --yes --quiet pip python=3.6
 conda install -c anaconda 'tensorflow=1.12*=mkl*'
+
+conda install -c anaconda 'tensorflow=1.12*=gpu*'
+
 python -m pip install --upgrade pip --user
 cd ${MRCNN_HOME}
 sed -i '' 's/^tensorflow.*/tensorflow==1.12.2/g' requirements.txt
