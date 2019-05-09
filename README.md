@@ -2,12 +2,14 @@
 
 ```bash
 conda remove --yes --quiet --all --name mask_rcnn
-conda create --yes --quiet --name mask_rcnn # --clone arcgispro-py3
+conda create --yes --quiet --name mask_rcnn --clone arcgispro-py3
 conda activate mask_rcnn
 conda install --yes --quiet pip python=3.6
-# python -m pip install --upgrade pip
+conda install -c anaconda 'tensorflow=1.12*=mkl*'
+python -m pip install --upgrade pip --user
 cd ${MRCNN_HOME}
 sed -i '' 's/^tensorflow.*/tensorflow==1.12.2/g' requirements.txt
+sed -i '' 's/^tensorflow.*/#/g' requirements.txt
 pip install -r requirements.txt
 pip install pycocotools
 ```

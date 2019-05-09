@@ -40,6 +40,8 @@ class TrainConfig(Config):
 class InferenceConfig(TrainConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
+    DETECTION_MIN_CONFIDENCE = 0.9
+    DETECTION_NMS_THRESHOLD = 0.2
 
 
 class MRDataset(utils.Dataset):
