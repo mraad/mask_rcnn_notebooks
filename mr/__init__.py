@@ -22,6 +22,7 @@ MODEL_DIR = "logs"
 
 class TrainConfig(Config):
     NAME = "mr"
+    BATCH_SIZE = 8
     GPU_COUNT = 1
     IMAGES_PER_GPU = 8
     IMAGE_MIN_DIM = IMG_SIZE
@@ -35,13 +36,15 @@ class TrainConfig(Config):
     DETECTION_MAX_INSTANCES = 30
     MAX_GT_INSTANCES = 30
     MEAN_PIXEL = np.array([150.1, 143.6, 130.3])
+    LEARNING_RATE = 1.0e-4
+    WEIGHT_DECAY = 1.0e-5
 
 
 class InferenceConfig(TrainConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
-    DETECTION_MIN_CONFIDENCE = 0.9
-    DETECTION_NMS_THRESHOLD = 0.2
+    # DETECTION_MIN_CONFIDENCE = 0.9
+    # DETECTION_NMS_THRESHOLD = 0.2
 
 
 class MRDataset(utils.Dataset):
