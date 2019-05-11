@@ -35,7 +35,8 @@ class TrainConfig(Config):
     TRAIN_ROIS_PER_IMAGE = 200
     DETECTION_MAX_INSTANCES = 30
     MAX_GT_INSTANCES = 30
-    MEAN_PIXEL = np.array([150.1, 143.6, 130.3])
+    # MEAN_PIXEL = np.array([150.1, 143.6, 130.3])
+    MEAN_PIXEL = np.array([130.2, 126.0, 123.8])
     LEARNING_RATE = 1.0e-4
     WEIGHT_DECAY = 1.0e-5
 
@@ -43,20 +44,20 @@ class TrainConfig(Config):
 class InferenceConfig(TrainConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
-    # DETECTION_MIN_CONFIDENCE = 0.9
-    # DETECTION_NMS_THRESHOLD = 0.2
+    DETECTION_MIN_CONFIDENCE = 0.9
+    DETECTION_NMS_THRESHOLD = 0.2
 
 
 class MRDataset(utils.Dataset):
     def load_glob(self, tif_glob):
 
-        self.add_class("mr", 1, "C_TankCompleted")
+        self.add_class("mr", 1, "E_PipeCompleted")
 
         for image_id, tif_path in enumerate(tif_glob):
             _, tif_name = os.path.split(tif_path)
             base, name = os.path.split(tif_path)
             base, _ = os.path.split(base)
-            mask = os.path.join(base, "labels", "C_TankCompleted", name)
+            mask = os.path.join(base, "labels", "E_PipeCompleted", name)
 
             self.add_image("mr",
                            image_id=image_id,
@@ -80,7 +81,11 @@ class MRDataset(utils.Dataset):
     @lru_cache(maxsize=None)
     def imread(self, image_path):
         if os.path.exists(image_path):
-            return skimage.io.imread(image_path)
+            image = skimage.io.imread(image_path)
+            # Sometimes the depth is larger than 1 from ETD4DL
+            if len(image.shape) > 2:
+                image = image[:,:,0]
+            return image
         else:
             return np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.int8)
 
@@ -111,16 +116,26 @@ class MRDataset(utils.Dataset):
     #         masks = np.array(masks)
     #     return masks.astype(np.bool), np.array(clazz, dtype=np.int32)
 
+    def load_mask_image(self, image_id):
+        info = self.image_info[image_id]
+        mask = info["mask"] 
+        return self.imread(mask)
+            
+    @lru_cache(maxsize=None)
     def load_mask(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
         image = self.imread(mask)
         label = np.unique(image)
         count = label.size - 1
-        masks = np.zeros([IMG_SIZE, IMG_SIZE, count], dtype=np.bool)
-        clazz = np.ones(count, np.int32)
-        for i in range(1, label.size):
-            idx = image == i
-            idx = idx.reshape(image.shape)
-            masks[:, :, i - 1] = idx
+        if count > 0:
+            masks = np.zeros([IMG_SIZE, IMG_SIZE, count], dtype=np.bool)
+            clazz = np.ones(count, np.int32)
+            for i in range(1, label.size):
+                idx = image == i
+                idx = idx.reshape(image.shape)
+                masks[:, :, i - 1] = idx
+        else:
+            masks = np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.bool)
+            clazz = np.ones(1, np.int32)
         return masks, clazz
