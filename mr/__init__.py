@@ -83,8 +83,8 @@ class MRDataset(utils.Dataset):
         if os.path.exists(image_path):
             image = skimage.io.imread(image_path)
             # Sometimes the depth is larger than 1 from ETD4DL
-            if len(image.shape) > 2:
-                image = image[:,:,0]
+            if image.ndim > 2:
+                image = image[:, :, 0]
             return image
         else:
             return np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.int8)
@@ -118,9 +118,9 @@ class MRDataset(utils.Dataset):
 
     def load_mask_image(self, image_id):
         info = self.image_info[image_id]
-        mask = info["mask"] 
+        mask = info["mask"]
         return self.imread(mask)
-            
+
     @lru_cache(maxsize=None)
     def load_mask(self, image_id):
         info = self.image_info[image_id]
