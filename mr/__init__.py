@@ -28,7 +28,7 @@ class TrainConfig(Config):
     IMAGE_MIN_DIM = IMG_SIZE
     IMAGE_MAX_DIM = IMG_SIZE
     NUM_CLASSES = 1 + 1  # Background + 1 class
-    RPN_ANCHOR_RATIOS = [0.1, 0.25, 4, 8]           
+    RPN_ANCHOR_RATIOS = [0.1, 0.25, 1, 2]           
     RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
     # RPN_ANCHOR_SCALES = (10, 20, 40, 80, 160)
     STEPS_PER_EPOCH = 50
@@ -46,7 +46,7 @@ class InferenceConfig(TrainConfig):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
     DETECTION_MIN_CONFIDENCE = 0.9
-    DETECTION_NMS_THRESHOLD = 0.2
+    # DETECTION_NMS_THRESHOLD = 0.2
 
 
 class MRDataset(utils.Dataset):
