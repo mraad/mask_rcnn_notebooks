@@ -14,6 +14,7 @@ cd ${MRCNN_HOME}
 sed -i '' 's/^tensorflow.*/tensorflow==1.12.2/g' requirements.txt
 sed -i '' 's/^tensorflow.*/#/g' requirements.txt
 pip install -r requirements.txt
+pip install cachetools
 pip install pycocotools
 ```
 

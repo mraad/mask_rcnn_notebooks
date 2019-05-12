@@ -4,8 +4,8 @@ import sys
 
 import numpy as np
 import skimage
-
 # from functools import lru_cache
+from cachetools import cached
 
 MRCNN_DIR = os.getenv("MRCNN_HOME", "Mask_RCNN")
 sys.path.append(MRCNN_DIR)
@@ -22,15 +22,15 @@ MODEL_DIR = "logs"
 
 
 # http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
-def memoize(f):
-    """ Memoization decorator for a function taking a single argument """
-
-    class memoize(dict):
-        def __missing__(self, key):
-            ret = self[key] = f(key)
-            return ret
-
-    return memoize().__getitem__
+# def memoize(f):
+#     """ Memoization decorator for a function taking a single argument """
+#
+#     class memoize(dict):
+#         def __missing__(self, key):
+#             ret = self[key] = f(key)
+#             return ret
+#
+#     return memoize().__getitem__
 
 
 class TrainConfig(Config):
@@ -51,7 +51,7 @@ class TrainConfig(Config):
     MAX_GT_INSTANCES = 30
     # MEAN_PIXEL = np.array([150.1, 143.6, 130.3]) # coco
     # MEAN_PIXEL = np.array([130.2, 126.0, 123.8]) #Tanks 256
-    MEAN_PIXEL = np.array([122.4, 119.5, 118.1]) # Pipes 512
+    MEAN_PIXEL = np.array([122.4, 119.5, 118.1])  # Pipes 512
     LEARNING_RATE = 1.0e-4
     WEIGHT_DECAY = 1.0e-5
 
@@ -94,7 +94,7 @@ class MRDataset(utils.Dataset):
             super(self.__class__).image_reference(self, image_id)
 
     # @lru_cache(maxsize=None)
-    @memoize
+    @cached(cache={})
     def imread(self, image_path):
         if os.path.exists(image_path):
             image = skimage.io.imread(image_path)
@@ -132,14 +132,14 @@ class MRDataset(utils.Dataset):
     #         masks = np.array(masks)
     #     return masks.astype(np.bool), np.array(clazz, dtype=np.int32)
 
-    @memoize
+    @cached(cache={})
     def load_mask_image(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
         return self.imread(mask)
 
     # @lru_cache(maxsize=None)
-    @memoize
+    @cached(cache={})
     def load_mask(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
