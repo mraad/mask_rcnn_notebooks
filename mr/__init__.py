@@ -25,12 +25,12 @@ MODEL_DIR = "logs"
 def memoize(f):
     """ Memoization decorator for a function taking a single argument """
 
-    class memodict(dict):
+    class memoize(dict):
         def __missing__(self, key):
             ret = self[key] = f(key)
             return ret
 
-    return memodict().__getitem__
+    return memoize().__getitem__
 
 
 class TrainConfig(Config):
@@ -49,8 +49,9 @@ class TrainConfig(Config):
     TRAIN_ROIS_PER_IMAGE = 200
     DETECTION_MAX_INSTANCES = 30
     MAX_GT_INSTANCES = 30
-    # MEAN_PIXEL = np.array([150.1, 143.6, 130.3])
-    MEAN_PIXEL = np.array([130.2, 126.0, 123.8])
+    # MEAN_PIXEL = np.array([150.1, 143.6, 130.3]) # coco
+    # MEAN_PIXEL = np.array([130.2, 126.0, 123.8]) #Tanks 256
+    MEAN_PIXEL = np.array([122.4, 119.5, 118.1]) # Pipes 512
     LEARNING_RATE = 1.0e-4
     WEIGHT_DECAY = 1.0e-5
 
