@@ -131,6 +131,7 @@ class MRDataset(utils.Dataset):
     #         masks = np.array(masks)
     #     return masks.astype(np.bool), np.array(clazz, dtype=np.int32)
 
+    @memoize
     def load_mask_image(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
