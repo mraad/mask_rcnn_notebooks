@@ -1,10 +1,11 @@
 import glob
 import os
 import sys
-from functools import lru_cache
 
 import numpy as np
 import skimage
+
+# from functools import lru_cache
 
 MRCNN_DIR = os.getenv("MRCNN_HOME", "Mask_RCNN")
 sys.path.append(MRCNN_DIR)
@@ -20,6 +21,18 @@ IMG_SIZE = 256
 MODEL_DIR = "logs"
 
 
+# http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+def memoize(f):
+    """ Memoization decorator for a function taking a single argument """
+
+    class memodict(dict):
+        def __missing__(self, key):
+            ret = self[key] = f(key)
+            return ret
+
+    return memodict().__getitem__
+
+
 class TrainConfig(Config):
     NAME = "mr"
     BATCH_SIZE = 8
@@ -28,7 +41,7 @@ class TrainConfig(Config):
     IMAGE_MIN_DIM = IMG_SIZE
     IMAGE_MAX_DIM = IMG_SIZE
     NUM_CLASSES = 1 + 1  # Background + 1 class
-    RPN_ANCHOR_RATIOS = [0.1, 0.25, 1, 2]           
+    RPN_ANCHOR_RATIOS = [0.1, 0.25, 1, 2]
     RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
     # RPN_ANCHOR_SCALES = (10, 20, 40, 80, 160)
     STEPS_PER_EPOCH = 50
@@ -79,7 +92,8 @@ class MRDataset(utils.Dataset):
         else:
             super(self.__class__).image_reference(self, image_id)
 
-    @lru_cache(maxsize=None)
+    # @lru_cache(maxsize=None)
+    @memoize
     def imread(self, image_path):
         if os.path.exists(image_path):
             image = skimage.io.imread(image_path)
@@ -122,7 +136,8 @@ class MRDataset(utils.Dataset):
         mask = info["mask"]
         return self.imread(mask)
 
-    @lru_cache(maxsize=None)
+    # @lru_cache(maxsize=None)
+    @memoize
     def load_mask(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
