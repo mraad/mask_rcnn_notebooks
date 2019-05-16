@@ -17,7 +17,7 @@ COCO_MODEL_PATH = os.path.join(MRCNN_DIR, "mask_rcnn_coco.h5")
 if not os.path.exists(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
 
-IMG_SIZE = 256
+IMG_SIZE = 448
 MODEL_DIR = "logs"
 
 
@@ -41,8 +41,8 @@ class TrainConfig(Config):
     IMAGE_MIN_DIM = IMG_SIZE
     IMAGE_MAX_DIM = IMG_SIZE
     NUM_CLASSES = 1 + 1  # Background + 1 class
-    RPN_ANCHOR_RATIOS = [0.1, 0.25, 1, 2]
-    RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)
+    # RPN_ANCHOR_RATIOS = [0.1, 0.25, 4, 10]
+    RPN_ANCHOR_SCALES = (32, 64, 128, 256, 448)
     # RPN_ANCHOR_SCALES = (10, 20, 40, 80, 160)
     STEPS_PER_EPOCH = 50
     VALIDATION_STEPS = 10
@@ -54,6 +54,7 @@ class TrainConfig(Config):
     MEAN_PIXEL = np.array([122.4, 119.5, 118.1])  # Pipes 512
     LEARNING_RATE = 1.0e-4
     WEIGHT_DECAY = 1.0e-5
+    USE_MINI_MASK = False
 
 
 class InferenceConfig(TrainConfig):
