@@ -35,13 +35,14 @@ MODEL_DIR = "logs"
 
 class TrainConfig(Config):
     NAME = "mr"
+    BACKBONE = "resnet50"
     BATCH_SIZE = 8
     GPU_COUNT = 1
     IMAGES_PER_GPU = 4
     IMAGE_MIN_DIM = IMG_SIZE
     IMAGE_MAX_DIM = IMG_SIZE
     NUM_CLASSES = 1 + 1  # Background + 1 class
-    # RPN_ANCHOR_RATIOS = [0.1, 0.25, 1, 4, 10]
+    RPN_ANCHOR_RATIOS = [0.1, 0.25, 1, 4, 10]
     RPN_ANCHOR_SCALES = (32, 64, 128, 256, 512)
     # RPN_ANCHOR_SCALES = (10, 20, 40, 80, 160)
     STEPS_PER_EPOCH = 50
