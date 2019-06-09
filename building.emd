@@ -1,0 +1,20 @@
+{
+  "Framework": "Keras",
+  "ModelFile": "mask_rcnn_building_0085.h5",
+  "ModelConfiguration": {
+    "Name": "MaskRCNN",
+    "Config": "building",
+    "Architecture": "building"
+  },
+  "ModelType": "ObjectDetection",
+  "ImageWidth": 256,
+  "ImageHeight": 256,
+  "ExtractBands": [0, 1, 2],
+  "Classes": [
+    {
+      "Value": 1,
+      "Name": "Building",
+      "Color": [0, 255, 0]
+    }
+  ]
+}
