@@ -1,5 +1,16 @@
-# Mask_RCNN Notebooks (WORK IN PROGRESS)
+# Mask_RCNN Notebooks
 
+Project to perform object detection and segmentation within ArcGIS using [Mask RCNN](https://github.com/matterport/Mask_RCNN).
+
+Clone the [Mask RCNN](https://github.com/matterport/Mask_RCNN) project locally, and define an environment variable named `MRCNN_HOME` to the cloned location.
+
+```bash
+git clone https://github.com/matterport/Mask_RCNN
+cd Mask_RCNN
+export MRCNN_HOME=$PWD
+```
+
+### Setup ArcGIS Pro Env
 
 ```bash
 conda remove --yes --quiet --all --name mask_rcnn
