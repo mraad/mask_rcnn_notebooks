@@ -21,6 +21,7 @@ conda remove --yes --quiet --all --name mask_rcnn
 conda create --yes --quiet --name mask_rcnn --clone arcgispro-py3
 conda activate mask_rcnn
 conda install --yes --quiet pip python=3.6
+python -m pip install --upgrade pip --user
 ```
 
 Execute the following to install the CPU version of tensorflow:
@@ -38,18 +39,65 @@ conda install -c anaconda 'tensorflow=1.12*=gpu*'
 Make sure to remove the `tensorflow` entry in `requirements.txt` file in the `Mask_RCNN` folder.
 
 ```
-python -m pip install --upgrade pip --user
 cd ${MRCNN_HOME}
-sed -i '' 's/^tensorflow.*/tensorflow==1.12.2/g' requirements.txt
 sed -i '' 's/^tensorflow.*/#/g' requirements.txt
 pip install -r requirements.txt
 pip install cachetools
 pip install pycocotools
 ```
 
-Make sure to run the `shapes` notebook in the `${MRCNN_HOME}\samples` folder to test the installation.
+Make sure to run the `shapes` notebook in the `${MRCNN_HOME}/samples` folder to test the installation.
 
-### Misc
+The following is a sample EMD (Esri Model Definition) file to be used with ArcGIS Pro [Detect Objects Using Deep Learning](https://pro.arcgis.com/en/pro-app/tool-reference/image-analyst/detect-objects-using-deep-learning.htm):
+
+```json
+{
+  "Framework": "Keras",
+  "ModelFile": "mask_rcnn_sample_0085.h5",
+  "ModelConfiguration": {
+    "Name": "MaskRCNN",
+    "Config": "sample",
+    "Architecture": "sample"
+  },
+  "ModelType": "ObjectDetection",
+  "ImageWidth": 256,
+  "ImageHeight": 256,
+  "ExtractBands": [0, 1, 2],
+  "Classes": [
+    {
+      "Value": 1,
+      "Name": "MyObject",
+      "Color": [0, 255, 0]
+    }
+  ]
+}
+```
+
+The following is a sample configuration (`sample.py`) associated with above EMD:
+
+```python
+from keras.backend import clear_session
+from mrcnn.config import Config
+from mrcnn.model import MaskRCNN
+
+
+class SampleConfig(Config):
+    NAME = "sample"
+    GPU_COUNT = 1
+    IMAGES_PER_GPU = 1
+    NUM_CLASSES = 1 + 1  # background + 1 class
+    IMAGE_MIN_DIM = 256
+    IMAGE_MAX_DIM = 256
+
+
+global model
+
+clear_session()
+config = SampleConfig()
+model = MaskRCNN('inference', config, '.')
+```
+
+### Notes To Self
 
 ```bash
 docker run --runtime=nvidia --rm nvidia/cuda:9.2-runtime-ubuntu16.04 nvidia-smi
