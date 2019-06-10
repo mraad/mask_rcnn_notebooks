@@ -3,9 +3,9 @@ from mrcnn.config import Config
 from mrcnn.model import MaskRCNN
 
 
-class BuildingConfig(Config):
+class SampleConfig(Config):
     # Give the configuration a recognizable name
-    NAME = "building"
+    NAME = "sample"
 
     # Train on 1 GPU and 8 images per GPU. We can put multiple images on each
     # GPU because the images are small. Batch size is 8 (GPUs * images/GPU).
@@ -25,17 +25,17 @@ class BuildingConfig(Config):
 
     # Reduce training ROIs per image because the images are small and have
     # few objects. Aim to allow ROI sampling to pick 33% positive ROIs.
-    TRAIN_ROIS_PER_IMAGE = 50
+    # TRAIN_ROIS_PER_IMAGE = 50
 
     # Use a small epoch since the data is simple
-    STEPS_PER_EPOCH = 500
+    # STEPS_PER_EPOCH = 500
 
     # use small validation steps since the epoch is small
-    VALIDATION_STEPS = 5
+    # VALIDATION_STEPS = 5
 
 
 global model
 
 clear_session()  # Fix 1
-config = BuildingConfig()
+config = SampleConfig()
 model = MaskRCNN('inference', config, '.')  # Fix 2
