@@ -119,12 +119,12 @@ class ETDTool(object):
         for shp_file in shp_files:
             tokens = shp_file.split(os.sep)
             shp_name = tokens[-1]
-            area_name = shp_name.split(os.sep)[0]
-            tif_file = os.path.join(tif_base, tokens[-3], ".tiff")
+            area_name = shp_name.split(".")[0]
+            tif_file = os.path.join(tif_base, tokens[-3]) + ".tiff"
             if not os.path.exists(tif_file):
                 arcpy.AddWarning("{} does not exist!".format(tif_file))
                 break
-            output_path = os.path.join(output_base, os.sep, "{}{}{}".format(label, size1, mode), area_name)
+            output_path = os.path.join(output_base, f"{label}{size1}{mode}", area_name)
             if not os.path.exists(output_path):
                 arcpy.ia.ExportTrainingDataForDeepLearning(tif_file,
                                                            output_path,
