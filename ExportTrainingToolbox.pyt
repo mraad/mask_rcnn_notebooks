@@ -20,31 +20,21 @@ class ETDTool(object):
         self.canRunInBackground = False
 
     def getParameterInfo(self):
-        shp_base = arcpy.Parameter(
-            displayName="Shapefile Base Folder",
+        shp_path = arcpy.Parameter(
+            displayName="Shapefile Folder",
             name="in_shp_base",
             datatype="DEFolder",
             parameterType="Required",
             direction="Input")
-        shp_base.value = os.path.join("G:", os.sep, "DLDATA")
+        shp_path.value = os.path.join("G:", os.sep, "DLDATA")
 
-        tif_base = arcpy.Parameter(
+        tif_path = arcpy.Parameter(
             displayName="TIFF Folder",
             name="in_tif_base",
             datatype="DEFolder",
             parameterType="Required",
             direction="Input")
-        tif_base.value = os.path.join("G:", os.sep, "DLDATA")
-
-        mode = arcpy.Parameter(
-            displayName="Mode",
-            name="in_mode",
-            datatype="GPString",
-            parameterType="Required",
-            direction="Input")
-        mode.filter.type = "ValueList"
-        mode.filter.list = ["Train", "Valid"]
-        mode.value = mode.filter.list[0]
+        tif_path.value = os.path.join("G:", os.sep, "DLDATA")
 
         size1 = arcpy.Parameter(
             displayName="Swatch Size",
@@ -62,14 +52,6 @@ class ETDTool(object):
             direction="Input")
         size2.value = 128
 
-        index = arcpy.Parameter(
-            displayName="Starting Index",
-            name="in_index",
-            datatype="GPLong",
-            parameterType="Required",
-            direction="Input")
-        index.value = 100000
-
         label = arcpy.Parameter(
             displayName="Label Format",
             name="in_label",
@@ -86,9 +68,9 @@ class ETDTool(object):
             datatype="DEFolder",
             parameterType="Required",
             direction="Input")
-        output.value = os.path.join("G:", os.sep)
+        output.value = os.path.join("G:", os.sep, "DLDATA")
 
-        return [shp_base, tif_base, mode, size1, size2, index, label, output]
+        return [shp_path, tif_path, size1, size2, label, output]
 
     def isLicensed(self):
         return True
@@ -100,14 +82,12 @@ class ETDTool(object):
         return
 
     def execute(self, parameters, _):
-        shp_base = parameters[0].valueAsText
-        tif_base = parameters[1].valueAsText
-        mode = parameters[2].value
-        size1 = parameters[3].value
-        size2 = parameters[4].value
-        index = parameters[5].value
-        label = parameters[6].value
-        output_base = parameters[7].valueAsText
+        shp_path = parameters[0].valueAsText
+        tif_path = parameters[1].valueAsText
+        size1 = parameters[2].value
+        size2 = parameters[3].value
+        label = parameters[4].value
+        output_base = parameters[5].valueAsText
 
         if not os.path.exists(output_base):
             os.makedirs(output_base)
@@ -115,16 +95,17 @@ class ETDTool(object):
         label_format = {"VOC": "PASCAL_VOC_rectangles", "RCNN": "RCNN_Masks"}[label]
 
         arcpy.env.autoCancelling = False
-        shp_files = glob.glob(os.path.join(shp_base, "*", "*", "*.shp"))
+        shp_files = glob.glob(os.path.join(shp_path, "*", "*", "*.shp"))
         for shp_file in shp_files:
             tokens = shp_file.split(os.sep)
             shp_name = tokens[-1]
             area_name = shp_name.split(".")[0]
-            tif_file = os.path.join(tif_base, tokens[-3]) + ".tiff"
+            tif_name = tokens[-3]
+            tif_file = os.path.join(tif_path, tif_name) + ".tif"
             if not os.path.exists(tif_file):
                 arcpy.AddWarning("{} does not exist!".format(tif_file))
                 break
-            output_path = os.path.join(output_base, f"{label}{size1}{mode}", area_name)
+            output_path = os.path.join(output_base, tif_name, area_name)
             if not os.path.exists(output_path):
                 arcpy.ia.ExportTrainingDataForDeepLearning(tif_file,
                                                            output_path,
@@ -134,12 +115,11 @@ class ETDTool(object):
                                                            size2, size2,
                                                            "ONLY_TILES_WITH_FEATURES",
                                                            label_format,
-                                                           index,
+                                                           0,
                                                            "Classvalue",
                                                            0)
             else:
                 arcpy.AddWarning("{} already exists.".format(output_path))
-            index += 1000
             if arcpy.env.isCancelled:
                 break
         arcpy.ResetProgressor()
