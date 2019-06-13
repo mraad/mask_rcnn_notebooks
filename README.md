@@ -107,3 +107,16 @@ docker run --runtime=nvidia --rm nvidia/cuda:9.2-runtime-ubuntu16.04 nvidia-smi
 docker run --runtime=nvidia -it --rm tensorflow/tensorflow:1.12.0-devel-gpu-py3 \
    python -c "import tensorflow as tf; tf.enable_eager_execution(); print(tf.reduce_sum(tf.random_normal([1000, 1000])))"
 ```
+
+```python
+# http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
+# def memoize(f):
+#     """ Memoization decorator for a function taking a single argument """
+#
+#     class memoize(dict):
+#         def __missing__(self, key):
+#             ret = self[key] = f(key)
+#             return ret
+#
+#     return memoize().__getitem__
+```

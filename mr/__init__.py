@@ -17,20 +17,8 @@ COCO_MODEL_PATH = os.path.join(MRCNN_DIR, "mask_rcnn_coco.h5")
 if not os.path.exists(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
 
-IMG_SIZE = 512
 MODEL_DIR = "logs"
-
-
-# http://code.activestate.com/recipes/578231-probably-the-fastest-memoization-decorator-in-the-/
-# def memoize(f):
-#     """ Memoization decorator for a function taking a single argument """
-#
-#     class memoize(dict):
-#         def __missing__(self, key):
-#             ret = self[key] = f(key)
-#             return ret
-#
-#     return memoize().__getitem__
+IMG_SIZE = 512
 
 
 class TrainConfig(Config):
@@ -56,7 +44,8 @@ class TrainConfig(Config):
     LEARNING_RATE = 1.0e-4
     WEIGHT_DECAY = 1.0e-5
     # USE_MINI_MASK = False
-    LOSS_WEIGHTS = {'rpn_class_loss': 1.0, 'rpn_bbox_loss': 1.0, 'mrcnn_class_loss': 1.0, 'mrcnn_bbox_loss': 1.0, 'mrcnn_mask_loss': 10.0}
+    LOSS_WEIGHTS = {'rpn_class_loss': 1.0, 'rpn_bbox_loss': 1.0, 'mrcnn_class_loss': 1.0, 'mrcnn_bbox_loss': 1.0,
+                    'mrcnn_mask_loss': 10.0}
 
 
 class InferenceConfig(TrainConfig):
@@ -69,13 +58,13 @@ class InferenceConfig(TrainConfig):
 class MRDataset(utils.Dataset):
     def load_glob(self, tif_glob):
 
-        self.add_class("mr", 1, "E_PipeCompleted")
+        self.add_class("mr", 1, "AClass")
 
         for image_id, tif_path in enumerate(tif_glob):
             _, tif_name = os.path.split(tif_path)
             base, name = os.path.split(tif_path)
             base, _ = os.path.split(base)
-            mask = os.path.join(base, "labels", "E_PipeCompleted", name)
+            mask = os.path.join(base, "labels", "AClass", name)
 
             self.add_image("mr",
                            image_id=image_id,
@@ -108,33 +97,7 @@ class MRDataset(utils.Dataset):
         else:
             return np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.int8)
 
-    # def load_mask(self, image_id):
-    #     info = self.image_info[image_id]
-    #     tif_path = info["path"]
-    #     masks = []
-    #     clazz = []
-    #     for class_info in self.class_info:
-    #         class_nm = class_info["name"]
-    #         class_id = class_info["id"]
-    #         base, name = os.path.split(tif_path)
-    #         base, _ = os.path.split(base)
-    #         name = os.path.join(base, "labels", class_nm, name)
-    #         if os.path.exists(name):
-    #             mask = self.imread(name)
-    #             instance_ids = np.unique(mask)
-    #             for i in instance_ids:
-    #                 if i > 0:
-    #                     m = np.zeros(mask.shape)
-    #                     m[mask == i] = i
-    #                     if np.any(m == i):
-    #                         masks.append(m)
-    #                         clazz.append(class_id)
-    #     if masks:
-    #         masks = np.stack(masks, axis=-1)
-    #     else:
-    #         masks = np.array(masks)
-    #     return masks.astype(np.bool), np.array(clazz, dtype=np.int32)
-
+    # @lru_cache(maxsize=None)
     @cached(cache={})
     def load_mask_image(self, image_id):
         info = self.image_info[image_id]
