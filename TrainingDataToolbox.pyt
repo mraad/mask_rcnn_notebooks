@@ -353,10 +353,11 @@ class SumDataTool(object):
 
 
 class ObjectCount(object):
-    def __init__(self, geom, name, facility):
+    def __init__(self, geom, name, facility, last_fc):
         self.geom = geom
         self.name = name
         self.facility = facility
+        self.last_fc = last_fc
         self.count = 1
 
     def iou(self, geom):
@@ -369,11 +370,12 @@ class ObjectCount(object):
     def is_same(self, facility, name, geom, iou_min):
         return self.facility == facility and self.name == name and self.iou(geom) > iou_min
 
-    def increment_count(self):
+    def increment_count(self, last_fc):
+        self.last_fc = last_fc
         self.count += 1
 
     def to_row(self):
-        return self.facility, self.name, self.count, self.geom
+        return self.facility, self.name, self.count, self.last_fc, self.geom
 
 
 class UniqueTool(object):
@@ -432,7 +434,7 @@ class UniqueTool(object):
             datatype="GPDouble",
             parameterType="Required",
             direction="Input")
-        iou_threshold.value = 0.4
+        iou_threshold.value = 0.35
 
         return [feature_layer, workspace, wild_card, class_name, layer_name, iou_threshold]
 
@@ -457,10 +459,11 @@ class UniqueTool(object):
                                             spatial_reference=sp_ref,
                                             has_m="DISABLED",
                                             has_z="DISABLED")
-        field_names = ["Facility", "Classname", "Population", "SHAPE@"]
+        field_names = ["Facility", "Classname", "Population", "LastFeatureClass", "SHAPE@"]
         arcpy.management.AddField(feature_class, field_names[0], "TEXT", field_length=128)
         arcpy.management.AddField(feature_class, field_names[1], "TEXT", field_length=128)
         arcpy.management.AddField(feature_class, field_names[2], "LONG")
+        arcpy.management.AddField(feature_class, field_names[3], "TEXT", field_length=128)
         with arcpy.da.InsertCursor(feature_class, field_names) as cursor:
             for o in arr:
                 cursor.insertRow(o.to_row())
@@ -513,12 +516,12 @@ class UniqueTool(object):
                         for elem in sp_index.intersection(bounds):
                             object_count = arr[elem]
                             if object_count.is_same(facility, name, geom, iou_min):
-                                object_count.increment_count()
+                                object_count.increment_count(fc_name)
                                 found = True
                                 break
                         if not found:
                             sp_index.insert(oid, bounds)
-                            arr.append(ObjectCount(geom, name, facility))
+                            arr.append(ObjectCount(geom, name, facility, fc_name))
                             oid += 1
         parameters[0].value = self.create_feature_class(layer_name, arr, sp_ref)
         arcpy.ResetProgressor()
