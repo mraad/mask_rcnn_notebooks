@@ -439,7 +439,7 @@ class UniqueTool(object):
 
     def create_feature_class(self, layer_name, arr, sp_ref):
         # ws = "memory"
-        ws = arcpy.env.workspace
+        ws = arcpy.env.scratchGDB
         feature_class = os.path.join(ws, layer_name)
         if arcpy.Exists(feature_class):
             arcpy.management.Delete(feature_class)
@@ -469,7 +469,7 @@ class UniqueTool(object):
         layer_name = parameters[4].value
 
         sp_ref = arcpy.SpatialReference(4326)
-        pattern = re.compile("(\w+)\d.+")
+        pattern = re.compile("([^\d]+).+")
         oid = 0
         arr = []
         sp_index = rtree.index.Index()
