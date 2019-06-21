@@ -508,7 +508,7 @@ class UniqueTool(object):
                                 break
                         if not found:
                             object_count = ObjectCount(geom, name, facility)
-                            sp_index.insert(id=oid, bounds=bounds, obj=object_count)
+                            sp_index.insert(oid, bounds, object_count)
                             arr.append(object_count)
                             oid += 1
         parameters[0].value = self.create_feature_class(layer_name, arr, sp_ref)
