@@ -366,8 +366,8 @@ class ObjectCount(object):
         union = self.geom.union(geom).area
         return inter / union
 
-    def is_same(self, facility, name, geom):
-        return self.facility == facility and self.name == name and self.iou(geom) > 0.5
+    def is_same(self, facility, name, geom, iou_min):
+        return self.facility == facility and self.name == name and self.iou(geom) > iou_min
 
     def increment_count(self):
         self.count += 1
@@ -426,7 +426,15 @@ class UniqueTool(object):
             direction="Input")
         layer_name.value = "ObjectStats"
 
-        return [feature_layer, workspace, wild_card, class_name, layer_name]
+        iou_threshold = arcpy.Parameter(
+            displayName="IoU Threshold",
+            name="in_iou_threshold",
+            datatype="GPDouble",
+            parameterType="Required",
+            direction="Input")
+        iou_threshold.value = 0.4
+
+        return [feature_layer, workspace, wild_card, class_name, layer_name, iou_threshold]
 
     def isLicensed(self):
         return True
@@ -467,6 +475,7 @@ class UniqueTool(object):
         wild_card = parameters[2].value
         class_name = parameters[3].value
         layer_name = parameters[4].value
+        iou_min = parameters[5].value
 
         sp_ref = arcpy.SpatialReference(4326)
         pattern = re.compile("([^\d]+).+")
@@ -503,7 +512,7 @@ class UniqueTool(object):
                         found = False
                         for elem in sp_index.intersection(bounds):
                             object_count = arr[elem]
-                            if object_count.is_same(facility, name, geom):
+                            if object_count.is_same(facility, name, geom, iou_min):
                                 object_count.increment_count()
                                 found = True
                                 break
