@@ -299,7 +299,7 @@ class SumDataTool(object):
             for fc_name, fc_value in l_stats.items():
                 row = [fc_name]
                 for field_name in g_stats:
-                    row.append(fc_value[field_name])
+                    row.append(fc_value.get(field_name, 0))
                 cursor.insertRow(row)
         return table_name
 
