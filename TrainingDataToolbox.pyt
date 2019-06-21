@@ -289,7 +289,8 @@ class SumDataTool(object):
         field_names = ["FeatureClass"]
         arcpy.management.AddField(temp_table, field_names[0], "TEXT", field_length=256)
         for field_name in g_stats:
-            arcpy.management.AddField(temp_table, field_name.replace(" ", ""), "LONG")
+            field_name = field_name.replace(" ", "")
+            arcpy.management.AddField(temp_table, field_name, "LONG")
             field_names.append(field_name)
         with arcpy.da.InsertCursor(temp_table, field_names) as cursor:
             row = ["All"]
