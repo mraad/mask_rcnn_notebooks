@@ -240,7 +240,7 @@ class SumDataTool(object):
             datatype="DEWorkspace",
             parameterType="Required",
             direction="Input")
-        workspace.value = os.path.join("C", os.sep, "xxxx.sde")
+        workspace.value = os.path.join("E:", os.sep, "ImageClass_zscusw0n121m004.sde")
 
         wild_card = arcpy.Parameter(
             displayName="Feature Class Wild Card",
@@ -248,7 +248,7 @@ class SumDataTool(object):
             datatype="GPString",
             parameterType="Required",
             direction="Input")
-        wild_card.value = "*Y*2*"
+        wild_card.value = "*2017*"
 
         class_name = arcpy.Parameter(
             displayName="Class Name",
