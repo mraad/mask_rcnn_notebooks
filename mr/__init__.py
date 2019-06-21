@@ -1,11 +1,12 @@
 import glob
 import os
 import sys
+from functools import lru_cache
 
 import numpy as np
 import skimage
-# from functools import lru_cache
-from cachetools import cached
+
+# from cachetools import cached
 
 MRCNN_DIR = os.getenv("MRCNN_HOME", "Mask_RCNN")
 sys.path.append(MRCNN_DIR)
@@ -58,13 +59,13 @@ class InferenceConfig(TrainConfig):
 class MRDataset(utils.Dataset):
     def load_glob(self, tif_glob):
 
-        self.add_class("mr", 1, "AClass")
+        self.add_class("mr", 1, "Tank")
 
         for image_id, tif_path in enumerate(tif_glob):
             _, tif_name = os.path.split(tif_path)
             base, name = os.path.split(tif_path)
             base, _ = os.path.split(base)
-            mask = os.path.join(base, "labels", "AClass", name)
+            mask = os.path.join(base, "labels", "Tank", name)
 
             self.add_image("mr",
                            image_id=image_id,
@@ -75,7 +76,7 @@ class MRDataset(utils.Dataset):
                            filename=tif_name)
 
     def load(self, base_path):
-        tif_glob = glob.glob(os.path.join(base_path, "*", "images", "*.tif"))
+        tif_glob = glob.glob(os.path.join(base_path, "images", "*.png"))
         self.load_glob(tif_glob)
 
     def image_reference(self, image_id):
@@ -85,8 +86,8 @@ class MRDataset(utils.Dataset):
         else:
             super(self.__class__).image_reference(self, image_id)
 
-    # @lru_cache(maxsize=None)
-    @cached(cache={})
+    @lru_cache(maxsize=None)
+    # @cached(cache={})
     def imread(self, image_path):
         if os.path.exists(image_path):
             image = skimage.io.imread(image_path)
@@ -97,15 +98,15 @@ class MRDataset(utils.Dataset):
         else:
             return np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.int8)
 
-    # @lru_cache(maxsize=None)
-    @cached(cache={})
+    @lru_cache(maxsize=None)
+    # @cached(cache={})
     def load_mask_image(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
         return self.imread(mask)
 
-    # @lru_cache(maxsize=None)
-    @cached(cache={})
+    @lru_cache(maxsize=None)
+    # @cached(cache={})
     def load_mask(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
