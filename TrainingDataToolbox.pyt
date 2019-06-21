@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import importlib.util
 import os
 
 import arcpy
+
+try:
+    import rtree
+except:
+    pass
 
 
 class Toolbox(object):
@@ -305,6 +311,10 @@ class SumDataTool(object):
         return table_name
 
     def execute(self, parameters, _):
+        spec = importlib.util.find_spec("rtree")
+        if spec is None:
+            arcpy.AddError("Please install 'rtree' package using the Python Package Manager")
+            return
         workspace = parameters[1].valueAsText
         wild_card = parameters[2].value
         class_name = parameters[3].value
