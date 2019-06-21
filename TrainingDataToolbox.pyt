@@ -361,6 +361,7 @@ class ObjectCount(object):
         self.count = 1
 
     def iou(self, geom):
+        # https://pro.arcgis.com/en/pro-app/arcpy/classes/geometry.htm
         if self.geom.disjoint(geom):
             return 0.0
         inter = self.geom.intersect(geom, 4).area
