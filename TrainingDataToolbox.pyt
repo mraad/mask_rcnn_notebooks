@@ -339,6 +339,7 @@ class SumDataTool(object):
                         l_stats[row_class_name] += 1
                         g_stats.setdefault(row_class_name, 0)
                         g_stats[row_class_name] += 1
-                l_stats_map[orig_fc] = l_stats
+                key = orig_fc.split(".")[-1]
+                l_stats_map[key] = l_stats
         parameters[0].value = self.create_table(table_name, g_stats, l_stats_map)
         arcpy.ResetProgressor()
