@@ -502,14 +502,14 @@ class UniqueTool(object):
                         bounds = (extent.XMin, extent.YMin, extent.XMax, extent.YMax)
                         found = False
                         for elem in sp_index.intersection(bounds, objects=True):
-                            if elem.object.is_same(facility, name, geom):
-                                elem.object.increment_count()
+                            object_count = arr[elem]
+                            if object_count.is_same(facility, name, geom):
+                                object_count.increment_count()
                                 found = True
                                 break
                         if not found:
-                            object_count = ObjectCount(geom, name, facility)
-                            sp_index.insert(oid, bounds, object_count)
-                            arr.append(object_count)
+                            sp_index.insert(oid, bounds)
+                            arr.append(ObjectCount(geom, name, facility))
                             oid += 1
         parameters[0].value = self.create_feature_class(layer_name, arr, sp_ref)
         arcpy.ResetProgressor()
