@@ -501,7 +501,7 @@ class UniqueTool(object):
                         extent = geom.extent
                         bounds = (extent.XMin, extent.YMin, extent.XMax, extent.YMax)
                         found = False
-                        for elem in sp_index.intersection(bounds, objects=True):
+                        for elem in sp_index.intersection(bounds):
                             object_count = arr[elem]
                             if object_count.is_same(facility, name, geom):
                                 object_count.increment_count()
