@@ -362,7 +362,7 @@ class ObjectCount(object):
     def iou(self, geom):
         if self.geom.disjoint(geom):
             return 0.0
-        inter = self.geom.intersect(geom).area
+        inter = self.geom.intersect(geom, 4).area
         union = self.geom.union(geom).area
         return inter / union
 
