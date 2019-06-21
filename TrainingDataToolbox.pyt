@@ -2,11 +2,12 @@
 
 import importlib.util
 import os
+import re
 
 import arcpy
 
 try:
-    import rtree
+    from rtree import index
 except:
     pass
 
@@ -15,7 +16,7 @@ class Toolbox(object):
     def __init__(self):
         self.label = "TrainingDataToolbox"
         self.alias = "TrainingDataToolbox"
-        self.tools = [ETDTool, SumDataTool]
+        self.tools = [ETDTool, SumDataTool, UniqueTool]
 
 
 class ETDTool(object):
@@ -311,10 +312,6 @@ class SumDataTool(object):
         return table_name
 
     def execute(self, parameters, _):
-        spec = importlib.util.find_spec("rtree")
-        if spec is None:
-            arcpy.AddError("Please install 'rtree' package using the Python Package Manager")
-            return
         workspace = parameters[1].valueAsText
         wild_card = parameters[2].value
         class_name = parameters[3].value
@@ -333,7 +330,8 @@ class SumDataTool(object):
             for orig_fc in arcpy.ListFeatureClasses(wild_card=wild_card, feature_dataset=feature_dataset):
                 if arcpy.env.isCancelled:
                     break
-                arcpy.SetProgressorLabel(orig_fc)
+                key = orig_fc.split(".")[-1]
+                arcpy.SetProgressorLabel(key)
                 if class_name == "All":
                     where = "1=1"
                 else:
@@ -349,7 +347,169 @@ class SumDataTool(object):
                         l_stats[row_class_name] += 1
                         g_stats.setdefault(row_class_name, 0)
                         g_stats[row_class_name] += 1
-                key = orig_fc.split(".")[-1]
                 l_stats_map[key] = l_stats
         parameters[0].value = self.create_table(table_name, g_stats, l_stats_map)
+        arcpy.ResetProgressor()
+
+
+class ObjectCount(object):
+    def __init__(self, geom, name, facility):
+        self.geom = geom
+        self.name = name
+        self.facility = facility
+        self.count = 1
+
+    def iou(self, geom):
+        if self.geom.disjoint(geom):
+            return 0.0
+        inter = self.geom.intersect(geom).area
+        union = self.geom.union(geom).area
+        return inter / union
+
+    def is_same(self, facility, name, geom):
+        return self.facility == facility and self.name == name and self.iou(geom) > 0.5
+
+    def increment_count(self):
+        self.count += 1
+
+    def to_row(self):
+        return self.facility, self.name, self.count, self.geom
+
+
+class UniqueTool(object):
+    def __init__(self):
+        self.label = "Unique Count"
+        self.description = "Unique Count"
+        self.canRunInBackground = False
+
+    def getParameterInfo(self):
+        # https://pro.arcgis.com/en/pro-app/arcpy/classes/parameter.htm
+
+        feature_layer = arcpy.Parameter(
+            name="out_fl",
+            displayName="out_fl",
+            direction="Output",
+            datatype="Feature Layer",
+            parameterType="Derived")
+
+        workspace = arcpy.Parameter(
+            displayName="Input workspace",
+            name="in_workspace",
+            datatype="DEWorkspace",
+            parameterType="Required",
+            direction="Input")
+        workspace.value = os.path.join("E:", os.sep, "ImageClass_zscusw0n121m004.sde")
+
+        wild_card = arcpy.Parameter(
+            displayName="Feature Class Wild Card",
+            name="in_prefix",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input")
+        wild_card.value = "*2017*"
+
+        class_name = arcpy.Parameter(
+            displayName="Class Name",
+            name="in_class_name",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input")
+        class_name.filter.type = "ValueList"
+        class_name.filter.list = ["All"]
+        class_name.value = class_name.filter.list[0]
+
+        layer_name = arcpy.Parameter(
+            displayName="Layer Name",
+            name="in_layer_name",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input")
+        layer_name.value = "ObjectStats"
+
+        return [feature_layer, workspace, wild_card, class_name, layer_name]
+
+    def isLicensed(self):
+        return True
+
+    def updateParameters(self, parameters):
+        return
+
+    def updateMessages(self, parameters):
+        return
+
+    def create_feature_class(self, layer_name, arr, sp_ref):
+        # ws = "memory"
+        ws = arcpy.env.workspace
+        feature_class = os.path.join(ws, layer_name)
+        if arcpy.Exists(feature_class):
+            arcpy.management.Delete(feature_class)
+        arcpy.management.CreateFeatureclass(ws,
+                                            layer_name,
+                                            "POLYGON",
+                                            spatial_reference=sp_ref,
+                                            has_m="DISABLED",
+                                            has_z="DISABLED")
+        field_names = ["Facility", "Classname", "Population", "SHAPE@"]
+        arcpy.management.AddField(feature_class, field_names[0], "TEXT", field_length=128)
+        arcpy.management.AddField(feature_class, field_names[1], "TEXT", field_length=128)
+        arcpy.management.AddField(feature_class, field_names[2], "LONG")
+        with arcpy.da.InsertCursor(feature_class, field_names) as cursor:
+            for o in arr:
+                cursor.insertRow(o.to_row())
+        return feature_class
+
+    def execute(self, parameters, _):
+        spec = importlib.util.find_spec("rtree")
+        if spec is None:
+            arcpy.AddError("Please install 'rtree' package using the Python Package Manager")
+            return
+        workspace = parameters[1].valueAsText
+        wild_card = parameters[2].value
+        class_name = parameters[3].value
+        layer_name = parameters[4].value
+
+        sp_ref = arcpy.SpatialReference(4326)
+        pattern = re.compile("(\w+)\d.+")
+        oid = 0
+        arr = []
+        sp_index = index.Index()
+
+        arcpy.env.autoCancelling = False
+        arcpy.env.workspace = workspace
+        feature_datasets = arcpy.ListDatasets("*", "All")
+        for feature_dataset in feature_datasets:
+            if arcpy.env.isCancelled:
+                break
+            for fc in arcpy.ListFeatureClasses(wild_card=wild_card, feature_dataset=feature_dataset):
+                if arcpy.env.isCancelled:
+                    break
+                fc_name = fc.split(".")[-1]
+                match = pattern.match(fc_name)
+                facility = match.group(1)
+                arcpy.SetProgressorLabel(fc_name)
+                if class_name == "All":
+                    where = "1=1"
+                else:
+                    where = f"Classname LIKE '%{class_name}%'"
+                with arcpy.da.SearchCursor(fc,
+                                           ["Classname", "SHAPE@"],
+                                           where_clause=where,
+                                           spatial_reference=sp_ref) as cursor:
+                    for row in cursor:
+                        name = row[0]
+                        geom = row[1]
+                        extent = geom.extent
+                        bounds = (extent.XMin, extent.YMin, extent.XMax, extent.YMax)
+                        found = False
+                        for elem in sp_index.intersection(bounds, objects=True):
+                            if elem.object.is_same(facility, name, geom):
+                                elem.object.increment_count()
+                                found = True
+                                break
+                        if not found:
+                            object_count = ObjectCount(geom, name, facility)
+                            sp_index.insert(id=oid, bounds=bounds, obj=object_count)
+                            arr.append(object_count)
+                            oid += 1
+        parameters[0].value = self.create_feature_class(layer_name, arr, sp_ref)
         arcpy.ResetProgressor()
