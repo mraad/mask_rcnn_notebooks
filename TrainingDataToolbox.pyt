@@ -7,7 +7,7 @@ import re
 import arcpy
 
 try:
-    from rtree import index
+    import rtree
 except:
     pass
 
@@ -472,7 +472,7 @@ class UniqueTool(object):
         pattern = re.compile("(\w+)\d.+")
         oid = 0
         arr = []
-        sp_index = index.Index()
+        sp_index = rtree.index.Index()
 
         arcpy.env.autoCancelling = False
         arcpy.env.workspace = workspace
