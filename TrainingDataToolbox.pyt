@@ -281,7 +281,7 @@ class SumDataTool(object):
 
     def create_table(self, table_name, g_stats, l_stats):
         # ws = "memory"
-        ws = arcpy.env.scratchGDB
+        ws = arcpy.env.workspace
         temp_table = os.path.join(ws, table_name)
         if arcpy.Exists(temp_table):
             arcpy.management.Delete(temp_table)
