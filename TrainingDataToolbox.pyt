@@ -130,7 +130,7 @@ class ETDTool(object):
             datatype="DEFolder",
             parameterType="Required",
             direction="Input")
-        output.value = os.path.join("C:", os.sep)
+        output.value = os.path.join("C:", os.sep, "output")
 
         return [workspace, wild_card, class_name, class_value, location, mask, mode, size1, size2, index, label, output]
 
@@ -288,7 +288,7 @@ class SumDataTool(object):
 
     def create_table(self, table_name, g_stats, l_stats):
         # ws = "memory"
-        ws = arcpy.env.workspace
+        ws = arcpy.env.scratchGDB
         temp_table = os.path.join(ws, table_name)
         if arcpy.Exists(temp_table):
             arcpy.management.Delete(temp_table)
