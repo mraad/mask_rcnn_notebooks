@@ -343,6 +343,7 @@ class SumDataTool(object):
                                            spatial_reference=sp_ref) as s_cursor:
                     for row in s_cursor:
                         row_class_name = row[0]
+                        # https://inventwithpython.com/blog/2019/06/05/pythonic-ways-to-use-dictionaries/
                         l_stats.setdefault(row_class_name, 0)
                         l_stats[row_class_name] += 1
                         g_stats.setdefault(row_class_name, 0)
