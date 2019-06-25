@@ -122,7 +122,7 @@ class ETDTool(object):
             direction="Input")
         label.filter.type = "ValueList"
         label.filter.list = ["VOC", "RCNN"]
-        label.value = label.filter.list[0]
+        label.value = label.filter.list[1]
 
         output = arcpy.Parameter(
             displayName="Output Folder",
@@ -130,7 +130,7 @@ class ETDTool(object):
             datatype="DEFolder",
             parameterType="Required",
             direction="Input")
-        output.value = os.path.join("C:", os.sep)
+        output.value = os.path.join("E:", os.sep, "output")
 
         return [workspace, wild_card, class_name, class_value, location, mask, mode, size1, size2, index, label, output]
 
@@ -185,9 +185,12 @@ class ETDTool(object):
         arcpy.env.workspace = workspace
         feature_datasets = arcpy.ListDatasets("*", "All")
         for feature_dataset in feature_datasets:
+            if arcpy.env.isCancelled:
+                break
             for orig_fc in arcpy.ListFeatureClasses(wild_card=wild_card, feature_dataset=feature_dataset):
+                if arcpy.env.isCancelled:
+                    break
                 arcpy.SetProgressorLabel(orig_fc)
-
                 _, _, last = orig_fc.split(".")
                 tif_file = last[location_len:]
                 tif_file = os.path.join(output_base, os.sep, "Planet_{}".format(location), "{}.tif".format(tif_file))
@@ -218,10 +221,6 @@ class ETDTool(object):
                 else:
                     arcpy.AddWarning("{} already exists.".format(output_path))
                 index += 1000
-                if arcpy.env.isCancelled:
-                    break
-            if arcpy.env.isCancelled:
-                break
         arcpy.ResetProgressor()
 
 
@@ -288,7 +287,7 @@ class SumDataTool(object):
 
     def create_table(self, table_name, g_stats, l_stats):
         # ws = "memory"
-        ws = arcpy.env.workspace
+        ws = arcpy.env.scratchGDB
         temp_table = os.path.join(ws, table_name)
         if arcpy.Exists(temp_table):
             arcpy.management.Delete(temp_table)
@@ -343,6 +342,7 @@ class SumDataTool(object):
                                            spatial_reference=sp_ref) as s_cursor:
                     for row in s_cursor:
                         row_class_name = row[0]
+                        # https://inventwithpython.com/blog/2019/06/05/pythonic-ways-to-use-dictionaries/
                         l_stats.setdefault(row_class_name, 0)
                         l_stats[row_class_name] += 1
                         g_stats.setdefault(row_class_name, 0)
@@ -361,6 +361,7 @@ class ObjectCount(object):
         self.count = 1
 
     def iou(self, geom):
+        # https://pro.arcgis.com/en/pro-app/arcpy/classes/geometry.htm
         if self.geom.disjoint(geom):
             return 0.0
         inter = self.geom.intersect(geom, 4).area
