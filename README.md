@@ -19,7 +19,7 @@ Start a `Python Command Prompt` From the ArcGIS Start menu item, and execute the
 ```bash
 conda remove --yes --quiet --all --name mask_rcnn
 conda create --yes --quiet --name mask_rcnn --clone arcgispro-py3
-conda activate mask_rcnn
+activate mask_rcnn
 conda install --yes --quiet pip python=3.6
 python -m pip install --upgrade pip --user
 ```
