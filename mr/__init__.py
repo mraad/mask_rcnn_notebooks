@@ -19,7 +19,7 @@ if not os.path.exists(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
 
 MODEL_DIR = "logs"
-IMG_SIZE = 256
+IMAGE_DIM = 256
 CLASS_NAME = "Smoke"
 
 
@@ -29,8 +29,8 @@ class TrainConfig(Config):
     BATCH_SIZE = 16
     GPU_COUNT = 1
     IMAGES_PER_GPU = 4
-    IMAGE_MIN_DIM = IMG_SIZE
-    IMAGE_MAX_DIM = IMG_SIZE
+    IMAGE_MIN_DIM = IMAGE_DIM
+    IMAGE_MAX_DIM = IMAGE_DIM
     NUM_CLASSES = 1 + 1  # Background + 1 class
     RPN_ANCHOR_RATIOS = [0.5, 1, 2]
     RPN_ANCHOR_SCALES = (16, 32, 64, 96, 128)
@@ -44,7 +44,7 @@ class TrainConfig(Config):
     # MEAN_PIXEL = np.array([130.2, 126.0, 123.8]) #Tanks 256
     # MEAN_PIXEL = np.array([122.4, 119.5, 118.1])  # Pipes 512
     # MEAN_PIXEL = np.array([143.4, 139.0, 127.7]) # Tanks
-    MEAN_PIXEL = np.array([142.1, 135.7, 120.1]) # Smoke stack
+    MEAN_PIXEL = np.array([142.1, 135.7, 120.1])  # Smoke stack
     LEARNING_RATE = 1.0e-4
     WEIGHT_DECAY = 1.0e-5
     # USE_MINI_MASK = False
@@ -74,8 +74,8 @@ class MRDataset(utils.Dataset):
                            image_id=image_id,
                            path=tif_path,
                            mask=mask,
-                           width=IMG_SIZE,
-                           height=IMG_SIZE,
+                           width=IMAGE_DIM,
+                           height=IMAGE_DIM,
                            filename=tif_name)
 
     def load(self, base_path):
@@ -91,7 +91,6 @@ class MRDataset(utils.Dataset):
             super(self.__class__).image_reference(self, image_id)
 
     @lru_cache(maxsize=None)
-    # @cached(cache={})
     def imread(self, image_path):
         if os.path.exists(image_path):
             image = skimage.io.imread(image_path)
@@ -100,17 +99,15 @@ class MRDataset(utils.Dataset):
                 image = image[:, :, 0]
             return image
         else:
-            return np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.int8)
+            return np.zeros([IMAGE_DIM, IMAGE_DIM, 1], dtype=np.int8)
 
     @lru_cache(maxsize=None)
-    # @cached(cache={})
     def load_mask_image(self, image_id):
         info = self.image_info[image_id]
         mask = info["mask"]
         return self.imread(mask)
 
     @lru_cache(maxsize=None)
-    # @cached(cache={})
     def load_mask(self, image_id):
         # Load data from labels folder
         info = self.image_info[image_id]
@@ -120,13 +117,13 @@ class MRDataset(utils.Dataset):
         label = np.unique(image)
         count = label.size - 1
         if count > 0:
-            masks = np.zeros([IMG_SIZE, IMG_SIZE, count], dtype=np.bool)
+            masks = np.zeros([IMAGE_DIM, IMAGE_DIM, count], dtype=np.bool)
             clazz = np.ones(count, np.int32)
             for i in range(1, label.size):
                 idx = image == i
                 idx = idx.reshape(image.shape)
                 masks[:, :, i - 1] = idx
         else:
-            masks = np.zeros([IMG_SIZE, IMG_SIZE, 1], dtype=np.bool)
+            masks = np.zeros([IMAGE_DIM, IMAGE_DIM, 1], dtype=np.bool)
             clazz = np.ones(1, np.int32)
         return masks, clazz

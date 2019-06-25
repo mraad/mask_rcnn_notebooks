@@ -49,7 +49,7 @@ class ETDTool(object):
             parameterType="Required",
             direction="Input")
         class_name.filter.type = "ValueList"
-        class_name.filter.list = ["Flare stack", "E_PipeCompleted", "Smoke stack"]
+        class_name.filter.list = ["E_PipeCompleted", "Smoke stack"]
         class_name.value = class_name.filter.list[0]
 
         class_value = arcpy.Parameter(
@@ -67,7 +67,7 @@ class ETDTool(object):
             parameterType="Required",
             direction="Input")
         location.filter.type = "ValueList"
-        location.filter.list = ["Yanbu", "Paradip", "Karachi", "SomeNewSite"]
+        location.filter.list = ["Yanbu", "Paradip", "Karachi"]
         location.value = location.filter.list[0]
 
         mask = arcpy.Parameter(
@@ -77,7 +77,7 @@ class ETDTool(object):
             parameterType="Required",
             direction="Input")
         mask.filter.type = "ValueList"
-        mask.filter.list = ["Flares", "Pipes", "Smoke"]
+        mask.filter.list = ["Pipes", "Smoke"]
         mask.value = mask.filter.list[0]
 
         mode = arcpy.Parameter(
@@ -104,7 +104,7 @@ class ETDTool(object):
             datatype="GPLong",
             parameterType="Required",
             direction="Input")
-        size2.value = 32
+        size2.value = 128
 
         index = arcpy.Parameter(
             displayName="Starting Index",
@@ -130,7 +130,7 @@ class ETDTool(object):
             datatype="DEFolder",
             parameterType="Required",
             direction="Input")
-        output.value = os.path.join("E:", os.sep, "output")
+        output.value = os.path.join("E:", os.sep)
 
         return [workspace, wild_card, class_name, class_value, location, mask, mode, size1, size2, index, label, output]
 
@@ -295,7 +295,7 @@ class SumDataTool(object):
         field_names = ["FeatureClass"]
         arcpy.management.AddField(temp_table, field_names[0], "TEXT", field_length=256)
         for field_name in g_stats:
-            field_name = field_name.replace(" ", "").replace("(","").replace(")","")
+            field_name = field_name.replace(" ", "_").replace("(", "").replace(")", "")
             arcpy.management.AddField(temp_table, field_name, "LONG")
             field_names.append(field_name)
         with arcpy.da.InsertCursor(temp_table, field_names) as cursor:
@@ -348,11 +348,13 @@ class SumDataTool(object):
                         g_stats.setdefault(row_class_name, 0)
                         g_stats[row_class_name] += 1
                 l_stats_map[key] = l_stats
+        # Put the table in the ToC
         parameters[0].value = self.create_table(table_name, g_stats, l_stats_map)
         arcpy.ResetProgressor()
 
 
 class ObjectCount(object):
+    # Supporting class to Unique Tool
     def __init__(self, geom, name, facility, last_fc):
         self.geom = geom
         self.name = name
@@ -362,11 +364,12 @@ class ObjectCount(object):
 
     def iou(self, geom):
         # https://pro.arcgis.com/en/pro-app/arcpy/classes/geometry.htm
-        if self.geom.disjoint(geom):
-            return 0.0
-        inter = self.geom.intersect(geom, 4).area
-        union = self.geom.union(geom).area
-        return inter / union
+        ret_val = 0.0
+        if not self.geom.disjoint(geom):
+            inter = self.geom.intersect(geom, 4).area  # 4 is for polygon !
+            union = self.geom.union(geom).area
+            ret_val = inter / union
+        return ret_val
 
     def is_same(self, facility, name, geom, iou_min):
         return self.facility == facility and self.name == name and self.iou(geom) > iou_min
