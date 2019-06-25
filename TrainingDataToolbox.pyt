@@ -32,7 +32,7 @@ class ETDTool(object):
             datatype="DEWorkspace",
             parameterType="Required",
             direction="Input")
-        workspace.value = os.path.join("C", os.sep, "xxxx.sde")
+        workspace.value = os.path.join("E:", os.sep, "ImageClass_zscusw0n121m004.sde")
 
         wild_card = arcpy.Parameter(
             displayName="Feature Class Wild Card",
@@ -49,7 +49,7 @@ class ETDTool(object):
             parameterType="Required",
             direction="Input")
         class_name.filter.type = "ValueList"
-        class_name.filter.list = ["Clazz"]
+        class_name.filter.list = ["Flare stack", "E_PipeCompleted", "Smoke stack"]
         class_name.value = class_name.filter.list[0]
 
         class_value = arcpy.Parameter(
@@ -67,7 +67,7 @@ class ETDTool(object):
             parameterType="Required",
             direction="Input")
         location.filter.type = "ValueList"
-        location.filter.list = ["Y", "P", "K"]
+        location.filter.list = ["Yanbu", "Paradip", "Karachi", "SomeNewSite"]
         location.value = location.filter.list[0]
 
         mask = arcpy.Parameter(
@@ -77,7 +77,7 @@ class ETDTool(object):
             parameterType="Required",
             direction="Input")
         mask.filter.type = "ValueList"
-        mask.filter.list = ["Clazz"]
+        mask.filter.list = ["Flares", "Pipes", "Smoke"]
         mask.value = mask.filter.list[0]
 
         mode = arcpy.Parameter(
@@ -96,7 +96,7 @@ class ETDTool(object):
             datatype="GPLong",
             parameterType="Required",
             direction="Input")
-        size1.value = 300
+        size1.value = 256
 
         size2 = arcpy.Parameter(
             displayName="Swatch Stride",
@@ -104,7 +104,7 @@ class ETDTool(object):
             datatype="GPLong",
             parameterType="Required",
             direction="Input")
-        size2.value = 100
+        size2.value = 32
 
         index = arcpy.Parameter(
             displayName="Starting Index",
@@ -296,7 +296,7 @@ class SumDataTool(object):
         field_names = ["FeatureClass"]
         arcpy.management.AddField(temp_table, field_names[0], "TEXT", field_length=256)
         for field_name in g_stats:
-            field_name = field_name.replace(" ", "")
+            field_name = field_name.replace(" ", "").replace("(","").replace(")","")
             arcpy.management.AddField(temp_table, field_name, "LONG")
             field_names.append(field_name)
         with arcpy.da.InsertCursor(temp_table, field_names) as cursor:
