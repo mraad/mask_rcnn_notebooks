@@ -12,17 +12,27 @@ cd Mask_RCNN
 export MRCNN_HOME=$PWD
 ```
 
+### Setup Standalone Env
+
+```
+conda config --set channel_priority false
+conda create --yes --name mask_rcnn python=3.6
+conda activate mask_rcnn
+```
+
 ### Setup ArcGIS Pro Env
 
 Start a `Python Command Prompt` From the ArcGIS Start menu item, and execute the following commands:
 
 ```bash
-conda remove --yes --quiet --all --name mask_rcnn
-conda create --yes --quiet --name mask_rcnn --clone arcgispro-py3
+conda remove --yes --all --name mask_rcnn
+conda create --yes --name mask_rcnn --clone arcgispro-py3
 activate mask_rcnn
-conda install --yes --quiet pip python=3.6
+conda install --yes pip python=3.6
 python -m pip install --upgrade pip --user
 ```
+
+### Installing Tensorflow
 
 Execute the following to install the CPU version of tensorflow:
 
@@ -39,9 +49,11 @@ conda install -c anaconda 'tensorflow=1.12*=gpu*'
 Make sure to remove the `tensorflow` entry in `requirements.txt` file in the `Mask_RCNN` folder.
 
 ```
+conda install -c conda-forge jupyterlab
 cd ${MRCNN_HOME}
 sed -i '' 's/^tensorflow.*/#/g' requirements.txt
 pip install -r requirements.txt
+# Optional
 pip install cachetools
 pip install pycocotools
 ```
