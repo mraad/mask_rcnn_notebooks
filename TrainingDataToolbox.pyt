@@ -16,7 +16,7 @@ class Toolbox(object):
     def __init__(self):
         self.label = "TrainingDataToolbox"
         self.alias = "TrainingDataToolbox"
-        self.tools = [ETDTool, SumDataTool, UniqueTool]
+        self.tools = [ETDTool, SumDataTool, UniqueTool, CopyFeaturesTool]
 
 
 class ETDTool(object):
@@ -529,3 +529,84 @@ class UniqueTool(object):
                             oid += 1
         parameters[0].value = self.create_feature_class(layer_name, arr, sp_ref)
         arcpy.ResetProgressor()
+
+
+class CopyFeaturesTool(object):
+    def __init__(self):
+        self.label = "Copy Features"
+        self.description = "Copy Features"
+        self.canRunInBackground = False
+
+    def getParameterInfo(self):
+        # https://pro.arcgis.com/en/pro-app/arcpy/classes/parameter.htm
+
+        from_fc = arcpy.Parameter(
+            name="from_fc",
+            displayName="From Feature Class",
+            direction="Input",
+            datatype="Table View",
+            parameterType="Required")
+
+        workspace = arcpy.Parameter(
+            name="in_workspace",
+            displayName="To Workspace",
+            datatype="DEWorkspace",
+            parameterType="Required",
+            direction="Input")
+        workspace.value = os.path.join("E:", os.sep, "ImageClass_zscusw0n121m004.sde")
+
+        wild_card = arcpy.Parameter(
+            name="in_prefix",
+            displayName="To Feature Class Wild Card",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input")
+        wild_card.value = "*2017*"
+
+        return [from_fc, workspace, wild_card]
+
+    def isLicensed(self):
+        return True
+
+    def updateParameters(self, parameters):
+        return
+
+    def updateMessages(self, parameters):
+        return
+
+    def execute(self, parameters, _):
+        from_fc = parameters[0].valueAsText
+        workspace = parameters[1].valueAsText
+        wild_card = parameters[2].value
+        arcpy.env.autoCancelling = False
+
+        # def _yield_rows():
+        #     field_names = ["SHAPE", "Classname", "Classvalue"]
+        #     with arcpy.da.SearchCursor(from_fc, field_names) as cursor:
+        #         for row in cursor:
+        #             yield row
+
+        # Make sure that input feature class has the fields Classname and Classvalue.
+        found = 0
+        description = arcpy.Describe(from_fc)
+        for field in description.fields:
+            if field.name in ['Classname', 'Classvalue']:
+                found += 1
+        if found != 2:
+            arcpy.AddError('Input feature class does not have Classname and/or Classvalue as fields')
+        else:
+            arcpy.env.autoCancelling = False
+            arcpy.env.workspace = workspace
+            datasets = arcpy.ListDatasets("*", "Feature")
+            arcpy.AddMessage(f"Found {len(datasets)} datasets.")
+            for dataset in datasets:
+                if arcpy.env.isCancelled:
+                    break
+                arcpy.AddMessage(dataset)
+                for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card, feature_dataset=dataset):
+                    if arcpy.env.isCancelled:
+                        break
+                    arcpy.AddMessage(dest_fc)
+                    arcpy.SetProgressorLabel(dest_fc)
+                    arcpy.management.Append(from_fc, dest_fc)
+            arcpy.ResetProgressor()

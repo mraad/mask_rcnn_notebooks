@@ -37,19 +37,19 @@ python -m pip install --upgrade pip --user
 Execute the following to install the CPU version of tensorflow:
 
 ```bash
-conda install -c anaconda 'tensorflow=1.12*=mkl*'
+conda install --yes -c anaconda 'tensorflow=1.12*=mkl*' numpy=1.15
 ```
 
 Execute the following to install the GPU version of tensorflow:
 
 ```bash
-conda install -c anaconda 'tensorflow=1.12*=gpu*'
+conda install --yes -c anaconda 'tensorflow=1.12*=gpu*'
 ```
 
 Make sure to remove the `tensorflow` entry in `requirements.txt` file in the `Mask_RCNN` folder.
 
 ```
-conda install -c conda-forge jupyterlab
+conda install --yes -c conda-forge jupyterlab
 cd ${MRCNN_HOME}
 sed -i '' 's/^tensorflow.*/#/g' requirements.txt
 pip install -r requirements.txt
