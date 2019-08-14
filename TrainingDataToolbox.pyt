@@ -47,7 +47,8 @@ class ETDTool(object):
             name="in_class_name",
             datatype="GPString",
             parameterType="Required",
-            direction="Input")
+            direction="Input",
+            multiValue=False)
         class_name.filter.type = "ValueList"
         class_name.filter.list = ["E_PipeCompleted", "Smoke stack"]
         class_name.value = class_name.filter.list[0]
