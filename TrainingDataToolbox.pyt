@@ -590,10 +590,10 @@ class CopyFeaturesTool(object):
         found = 0
         description = arcpy.Describe(from_fc)
         for field in description.fields:
-            if field.name in ['Classname', 'Classvalue']:
+            if field.name in ["Classname", "Classvalue"]:
                 found += 1
         if found != 2:
-            arcpy.AddError('Input feature class does not have Classname and/or Classvalue as fields')
+            arcpy.AddError("Input feature class does not have Classname and/or Classvalue as fields")
         else:
             arcpy.env.autoCancelling = False
             arcpy.env.workspace = workspace
@@ -603,10 +603,20 @@ class CopyFeaturesTool(object):
                 if arcpy.env.isCancelled:
                     break
                 arcpy.AddMessage(dataset)
-                for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card, feature_dataset=dataset):
+                for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card,
+                                                        feature_type="Polygon",
+                                                        feature_dataset=dataset):
                     if arcpy.env.isCancelled:
                         break
                     arcpy.AddMessage(dest_fc)
                     arcpy.SetProgressorLabel(dest_fc)
-                    arcpy.management.Append(from_fc, dest_fc)
+                    arcpy.management.Append(from_fc, dest_fc, "NO_TEST")
+            for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card,
+                                                    feature_type="Polygon",
+                                                    feature_dataset=""):
+                if arcpy.env.isCancelled:
+                    break
+                arcpy.AddMessage(dest_fc)
+                arcpy.SetProgressorLabel(dest_fc)
+                arcpy.management.Append(from_fc, dest_fc, "NO_TEST")
             arcpy.ResetProgressor()
