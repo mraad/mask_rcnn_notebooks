@@ -557,7 +557,7 @@ class CopyFeaturesTool(object):
         workspace.value = os.path.join("E:", os.sep, "ImageClass_zscusw0n121m004.sde")
 
         wild_card = arcpy.Parameter(
-            name="in_prefix",
+            name="in_wild_card",
             displayName="To Feature Class Wild Card",
             datatype="GPString",
             parameterType="Required",
@@ -639,7 +639,7 @@ class CleanClassNameTool(object):
         workspace.value = os.path.join("E:", os.sep, "ImageClass_zscusw0n121m004.sde")
 
         wild_card = arcpy.Parameter(
-            name="in_prefix",
+            name="in_wild_card",
             displayName="To Feature Class Wild Card",
             datatype="GPString",
             parameterType="Required",
@@ -683,7 +683,7 @@ class CleanClassNameTool(object):
                     break
                 arcpy.SetProgressorLabel(dest_fc)
                 calc_field(dest_fc)
-        # Look for features in the current workspace in case it is a FileGDB.
+        # Look for features in the current workspace in case the workspace is a FileGDB.
         for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card,
                                                 feature_type="Polygon",
                                                 feature_dataset=""):
