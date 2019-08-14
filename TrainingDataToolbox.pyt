@@ -16,7 +16,7 @@ class Toolbox(object):
     def __init__(self):
         self.label = "TrainingDataToolbox"
         self.alias = "TrainingDataToolbox"
-        self.tools = [ETDTool, SumDataTool, UniqueTool, CopyFeaturesTool]
+        self.tools = [ETDTool, SumDataTool, UniqueTool, CopyFeaturesTool, CleanClassNameTool]
 
 
 class ETDTool(object):
@@ -595,7 +595,6 @@ class CopyFeaturesTool(object):
         if found != 2:
             arcpy.AddError("Input feature class does not have Classname and/or Classvalue as fields")
         else:
-            arcpy.env.autoCancelling = False
             arcpy.env.workspace = workspace
             datasets = arcpy.ListDatasets("*", "Feature")
             arcpy.AddMessage(f"Found {len(datasets)} datasets.")
@@ -608,15 +607,87 @@ class CopyFeaturesTool(object):
                                                         feature_dataset=dataset):
                     if arcpy.env.isCancelled:
                         break
-                    arcpy.AddMessage(dest_fc)
                     arcpy.SetProgressorLabel(dest_fc)
                     arcpy.management.Append(from_fc, dest_fc, "NO_TEST")
+            # Look for features in the current workspace in case it is a FileGDB.
             for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card,
                                                     feature_type="Polygon",
                                                     feature_dataset=""):
                 if arcpy.env.isCancelled:
                     break
-                arcpy.AddMessage(dest_fc)
                 arcpy.SetProgressorLabel(dest_fc)
                 arcpy.management.Append(from_fc, dest_fc, "NO_TEST")
             arcpy.ResetProgressor()
+
+
+class CleanClassNameTool(object):
+    def __init__(self):
+        self.label = "Clean Class Names"
+        self.description = "Clean Class Names"
+        self.canRunInBackground = False
+
+    def getParameterInfo(self):
+        # https://pro.arcgis.com/en/pro-app/arcpy/classes/parameter.htm
+
+        workspace = arcpy.Parameter(
+            name="in_workspace",
+            displayName="To Workspace",
+            datatype="DEWorkspace",
+            parameterType="Required",
+            direction="Input")
+        workspace.value = os.path.join("E:", os.sep, "ImageClass_zscusw0n121m004.sde")
+
+        wild_card = arcpy.Parameter(
+            name="in_prefix",
+            displayName="To Feature Class Wild Card",
+            datatype="GPString",
+            parameterType="Required",
+            direction="Input")
+        wild_card.value = "*2017*"
+
+        return [workspace, wild_card]
+
+    def isLicensed(self):
+        return True
+
+    def updateParameters(self, parameters):
+        return
+
+    def updateMessages(self, parameters):
+        return
+
+    def execute(self, parameters, _):
+        workspace = parameters[0].valueAsText
+        wild_card = parameters[1].value
+        arcpy.env.autoCancelling = False
+
+        def calc_field(fc):
+            arcpy.management.CalculateField(fc,
+                                            "Classname",
+                                            """re.sub('[\s+]', '', !Classname!)""",
+                                            "PYTHON3",
+                                            "import re")
+
+        arcpy.env.workspace = workspace
+        datasets = arcpy.ListDatasets("*", "Feature")
+        arcpy.AddMessage(f"Found {len(datasets)} datasets.")
+        for dataset in datasets:
+            if arcpy.env.isCancelled:
+                break
+            arcpy.AddMessage(dataset)
+            for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card,
+                                                    feature_type="Polygon",
+                                                    feature_dataset=dataset):
+                if arcpy.env.isCancelled:
+                    break
+                arcpy.SetProgressorLabel(dest_fc)
+                calc_field(dest_fc)
+        # Look for features in the current workspace in case it is a FileGDB.
+        for dest_fc in arcpy.ListFeatureClasses(wild_card=wild_card,
+                                                feature_type="Polygon",
+                                                feature_dataset=""):
+            if arcpy.env.isCancelled:
+                break
+            arcpy.SetProgressorLabel(dest_fc)
+            calc_field(dest_fc)
+        arcpy.ResetProgressor()
