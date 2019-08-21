@@ -43,7 +43,7 @@ conda install --yes -c anaconda 'tensorflow=1.12*=mkl*' numpy=1.15
 Execute the following to install the GPU version of tensorflow:
 
 ```bash
-conda install --yes -c anaconda 'tensorflow=1.12*=gpu*'
+conda install --yes -c anaconda 'tensorflow=1.12*=gpu*' numpy=1.16
 ```
 
 Make sure to remove the `tensorflow` entry in `requirements.txt` file in the `Mask_RCNN` folder.

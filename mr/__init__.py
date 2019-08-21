@@ -1,18 +1,14 @@
 import glob
 import os
-import sys
 from functools import lru_cache
 
 import numpy as np
 import skimage
-
-# from cachetools import cached
-
-MRCNN_DIR = os.getenv("MRCNN_HOME", "Mask_RCNN")
-sys.path.append(MRCNN_DIR)
-
-from mrcnn.config import Config
 from mrcnn import utils
+from mrcnn.config import Config
+
+# MRCNN_DIR = os.getenv("MRCNN_HOME", "Mask_RCNN")
+# sys.path.append(MRCNN_DIR)
 
 COCO_MODEL_PATH = os.path.join(MRCNN_DIR, "mask_rcnn_coco.h5")
 if not os.path.exists(COCO_MODEL_PATH):
@@ -20,7 +16,7 @@ if not os.path.exists(COCO_MODEL_PATH):
 
 MODEL_DIR = "logs"
 IMAGE_DIM = 256
-CLASS_NAME = "Smoke"
+CLASS_NAME = "Tank"
 
 
 class TrainConfig(Config):
@@ -48,8 +44,13 @@ class TrainConfig(Config):
     LEARNING_RATE = 1.0e-4
     WEIGHT_DECAY = 1.0e-5
     # USE_MINI_MASK = False
-    LOSS_WEIGHTS = {'rpn_class_loss': 1.0, 'rpn_bbox_loss': 1.0, 'mrcnn_class_loss': 1.0, 'mrcnn_bbox_loss': 1.0,
-                    'mrcnn_mask_loss': 10.0}
+    LOSS_WEIGHTS = {
+        'rpn_class_loss': 1.0,
+        'rpn_bbox_loss': 1.0,
+        'mrcnn_class_loss': 1.0,
+        'mrcnn_bbox_loss': 1.0,
+        'mrcnn_mask_loss': 10.0
+    }
 
 
 class InferenceConfig(TrainConfig):
@@ -62,13 +63,13 @@ class InferenceConfig(TrainConfig):
 class MRDataset(utils.Dataset):
     def load_glob(self, tif_glob):
 
-        self.add_class("mr", 1, "Smoke stack")
+        self.add_class("mr", 1, CLASS_NAME)
 
         for image_id, tif_path in enumerate(tif_glob):
             _, tif_name = os.path.split(tif_path)
             base, name = os.path.split(tif_path)
             base, _ = os.path.split(base)
-            mask = os.path.join(base, "labels", "Smoke stack", name)
+            mask = os.path.join(base, "labels", CLASS_NAME, name)
 
             self.add_image("mr",
                            image_id=image_id,
